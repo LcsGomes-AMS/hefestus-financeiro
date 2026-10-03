@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101113"><meta name="robots" content="noindex,nofollow">
+  <title>Financeiro | Hefestus Maker</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+</head>
+<body>
+  <div id="boot" class="boot" role="status">Carregando Hefestus Financeiro…</div>
+  <section id="login-screen" class="login-screen" hidden aria-labelledby="login-title">
+    <div class="login-brand"><img src="logo.png" alt="Hefestus Maker"><span>GESTÃO FINANCEIRA</span></div>
+    <form id="login-form" class="login-card">
+      <div class="eyebrow">SEU NEGÓCIO, EM ORDEM</div><h1 id="login-title">Bem-vindo à<br> sua oficina.</h1>
+      <p>Entre para acompanhar o financeiro da Hefestus Maker.</p>
+      <label for="login-user">Usuário</label><input id="login-user" autocomplete="username" maxlength="100" required>
+      <label for="login-password">Senha</label><input id="login-password" type="password" autocomplete="current-password" maxlength="256" required>
+      <p id="login-error" class="error" role="alert"></p><button class="primary" type="submit">Entrar no painel</button>
+      <small>Acesso restrito à empresa.</small>
+    </form>
+  </section>
+  <div id="dashboard" class="dashboard" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="#overview"><img src="logo.png" alt="Logo Hefestus Maker"><span>HEFESTUS<small>MAKER</small></span></a>
+      <div class="workspace-label">ESPAÇO DA EMPRESA</div>
+      <nav aria-label="Navegação"><a href="#overview" class="nav-active"><span aria-hidden="true">▦</span> Visão financeira</a><a href="#transactions"><span aria-hidden="true">≡</span> Lançamentos</a></nav>
+      <div class="sidebar-note"><span class="tiny-logo" aria-hidden="true">H</span><strong>Cada ideia ganha forma.<br>Cada valor, um registro.</strong><p>Hefestus Maker · Financeiro</p></div>
+    </aside>
+    <div class="main-area">
+      <header class="topbar"><span class="breadcrumb">Hefestus Maker <span>/</span> Financeiro</span><div class="account"><span id="account-name"></span><button id="logout" class="text-button" type="button">Sair</button></div></header>
+      <main id="overview">
+        <div class="page-heading"><div><div class="eyebrow">CONTROLE DA SUA OPERAÇÃO</div><h1>Visão financeira<span>.</span></h1><p>Impressões, custos e resultados em um só lugar.</p></div><button class="primary" id="new-entry" type="button"><span aria-hidden="true">+</span> Novo lançamento</button></div>
+        <section class="filters panel" aria-labelledby="filter-title">
+          <div class="filter-heading"><h2 id="filter-title">Período e filtros</h2><span>Os totais refletem os filtros aplicados.</span></div>
+          <form id="filter-form" class="filter-grid">
+            <div><label for="from">De</label><input id="from" type="date" min="2000-01-01" max="2100-12-31"></div>
+            <div><label for="to">Até</label><input id="to" type="date" min="2000-01-01" max="2100-12-31"></div>
+            <div><label for="filter-type">Movimentação</label><select id="filter-type"><option value="">Todas</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select></div>
+            <div class="search-field"><label for="search">Buscar lançamento</label><input id="search" type="search" placeholder="Descrição, cliente ou fornecedor" maxlength="160"></div>
+            <button class="secondary" type="submit">Aplicar</button><button class="text-button" id="clear-filters" type="button">Limpar</button>
+          </form>
+        </section>
+        <p id="page-error" class="error" role="alert"></p>
+        <section class="summary" aria-label="Resumo dos lançamentos filtrados">
+          <article class="summary-card"><div class="summary-label">Entradas <span class="metric-icon positive" aria-hidden="true">+</span></div><strong id="incoming">—</strong><p>Valores recebidos no período</p></article>
+          <article class="summary-card"><div class="summary-label">Saídas <span class="metric-icon negative" aria-hidden="true">−</span></div><strong id="outgoing">—</strong><p>Despesas registradas no período</p></article>
+          <article class="summary-card balance"><div class="summary-label">Saldo do período <span class="metric-icon" aria-hidden="true">=</span></div><strong id="balance">—</strong><p>Entradas menos saídas filtradas</p></article>
+        </section>
+        <section id="transactions" class="panel ledger" aria-labelledby="ledger-title">
+          <div class="ledger-heading"><div><h2 id="ledger-title">Lançamentos</h2><p id="result-count" aria-live="polite">Carregando registros…</p></div><button id="refresh" class="secondary" type="button">Atualizar</button></div>
+          <div id="empty" class="empty" hidden><div class="empty-icon" aria-hidden="true">≡</div><h3>Nenhum lançamento por aqui.</h3><p>Registre uma entrada ou saída, ou ajuste os filtros para encontrar seus registros.</p><button class="secondary" id="empty-add" type="button">Criar lançamento</button></div>
+          <div id="table-wrap" class="table-wrap"><table><caption class="sr-only">Entradas e saídas da Hefestus Maker</caption><thead><tr><th scope="col">Data</th><th scope="col">Descrição / impressão</th><th scope="col">Tipo</th><th scope="col">Peso</th><th scope="col" class="value-col">Valor</th><th scope="col">Ações</th></tr></thead><tbody id="entry-rows"></tbody></table></div>
+          <div class="pagination"><span id="page-label">Página 1</span><div><button id="previous" class="secondary" type="button" disabled>Anterior</button><button id="next" class="secondary" type="button" disabled>Próxima</button></div></div>
+        </section>
+        <footer class="footer"><span>© 2026 Hefestus Maker</span><span>Organização para continuar criando.</span></footer>
+      </main>
+    </div>
+  </div>
+  <dialog id="entry-dialog" aria-labelledby="entry-title">
+    <form id="entry-form">
+      <div class="dialog-heading"><div><div class="eyebrow">MOVIMENTAÇÃO FINANCEIRA</div><h2 id="entry-title">Novo lançamento</h2></div><button type="button" class="icon-button" id="close-entry" aria-label="Fechar formulário">×</button></div>
+      <fieldset class="type-options"><legend>Tipo de movimentação</legend><label><input type="radio" name="type" value="entrada" checked> <span>+ Entrada</span></label><label><input type="radio" name="type" value="saida"> <span>− Saída</span></label></fieldset>
+      <div class="form-grid"><div><label for="amount">Valor (R$)</label><input id="amount" type="text" inputmode="decimal" placeholder="0,00" pattern="[0-9]{1,9}([.,][0-9]{1,2})?" title="Exemplo: 1250,50 (sem ponto de milhar)" maxlength="12" required><small>Ex.: 1250,50 — sem ponto de milhar.</small></div><div><label for="entry-date">Data</label><input id="entry-date" type="date" min="2000-01-01" max="2100-12-31" required></div></div>
+      <label for="description">Descrição / impressão</label><textarea id="description" rows="3" placeholder="Ex.: impressão de uma miniatura, 100 g de PLA" maxlength="2000" required></textarea>
+      <div class="form-grid"><div><label for="weight">Peso da impressão (g) <span>opcional</span></label><input id="weight" type="text" inputmode="decimal" pattern="[0-9]{1,8}([.,][0-9]{1,2})?" placeholder="Ex.: 100" maxlength="11"></div><div><label for="contact">Cliente / fornecedor <span>opcional</span></label><input id="contact" maxlength="160" placeholder="Nome ou referência"></div></div>
+      <p id="entry-error" class="error" role="alert"></p><div class="dialog-actions"><button type="button" class="secondary" id="cancel-entry">Cancelar</button><button class="primary" id="save-entry" type="submit">Salvar lançamento</button></div>
+    </form>
+  </dialog>
+  <dialog id="delete-dialog" class="small-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Excluir lançamento?</h2><p id="delete-description"></p><p>O valor será retirado dos totais. O histórico permanece preservado no banco.</p><p id="delete-error" class="error" role="alert"></p><div class="dialog-actions"><button class="secondary" id="cancel-delete" type="button">Cancelar</button><button class="danger" id="confirm-delete" type="button">Excluir lançamento</button></div></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
