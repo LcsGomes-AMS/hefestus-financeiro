@@ -1,5 +1,7 @@
 # Hefestus Maker — Financeiro
 
+**Versão 1.1:** relatórios Excel/PDF, gráfico mensal clicável e pedidos de impressão. Para atualizar uma instalação existente, siga primeiro [ATUALIZAR-RENDER.md](ATUALIZAR-RENDER.md). Não é preciso recriar o banco nem o serviço.
+
 Sistema de entradas e saídas com acesso por senha, PostgreSQL no Neon e servidor Node.js no Render. O projeto é separado do site institucional entregue anteriormente.
 
 ## O que está incluído
@@ -141,4 +143,3 @@ Os testes locais cobrem validação monetária, datas, filtros, login, sessão, 
 - Render / Node + Express: https://render.com/docs/deploy-node-express-app
 - Render / Blueprint: https://render.com/docs/blueprint-spec
 - Neon / conexão: https://neon.com/docs/connect/connect-from-any-app
-

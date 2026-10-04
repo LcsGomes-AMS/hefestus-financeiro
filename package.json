@@ -1,6 +1,6 @@
 {
   "name": "hefestus-financeiro",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Controle de entradas e saídas da Hefestus Maker — Neon + Render",
@@ -10,5 +10,5 @@
     "dev": "node --env-file-if-exists=.env --watch src/server.js",
     "test": "node --test test/*.test.js"
   },
-  "dependencies": { "express": "5.1.0", "pg": "8.16.3" }
+  "dependencies": { "express": "5.1.0", "pg": "8.16.3", "jszip": "3.10.1", "pdf-lib": "1.17.1" }
 }

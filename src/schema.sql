@@ -33,3 +33,18 @@ CREATE TABLE IF NOT EXISTS hm_login_limits (
   attempts INTEGER NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL
 );
+
+-- Atualização 1.1: aditiva e idempotente, preserva os lançamentos existentes.
+CREATE TABLE IF NOT EXISTS hm_orders (
+  id UUID PRIMARY KEY,
+  description TEXT NOT NULL CHECK(length(description) BETWEEN 1 AND 2000),
+  contact TEXT NOT NULL DEFAULT '' CHECK(length(contact) <= 160),
+  status TEXT NOT NULL DEFAULT 'orcamento' CHECK(status IN ('orcamento','aprovado','imprimindo','entregue')),
+  amount_cents BIGINT CHECK(amount_cents BETWEEN 1 AND 99999999999),
+  weight_grams NUMERIC(12,2) CHECK(weight_grams > 0 AND weight_grams <= 99999999.99),
+  due_date DATE,
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS hm_orders_status_idx ON hm_orders(status,created_at DESC);

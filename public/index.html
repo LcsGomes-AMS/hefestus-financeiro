@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#101113"><meta name="robots" content="noindex,nofollow">
   <title>Financeiro | Hefestus Maker</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+  <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script><script src="features.js" defer></script>
 </head>
 <body>
   <div id="boot" class="boot" role="status">Carregando Hefestus Financeiro…</div>
@@ -47,13 +47,19 @@
           <article class="summary-card"><div class="summary-label">Saídas <span class="metric-icon negative" aria-hidden="true">−</span></div><strong id="outgoing">—</strong><p>Despesas registradas no período</p></article>
           <article class="summary-card balance"><div class="summary-label">Saldo do período <span class="metric-icon" aria-hidden="true">=</span></div><strong id="balance">—</strong><p>Entradas menos saídas filtradas</p></article>
         </section>
+        <section class="panel chart-panel" aria-labelledby="chart-title">
+          <div class="ledger-heading"><div><h2 id="chart-title">Evolução mensal</h2><p>Todos os lançamentos do ano. Clique em um mês para filtrar o financeiro.</p></div><form id="chart-form"><label for="chart-year">Ano</label><div class="inline-actions"><input id="chart-year" type="number" min="2000" max="2100" required><button class="secondary" type="submit">Ver</button></div></form></div>
+          <p id="chart-error" class="error" role="alert"></p><div class="chart-legend"><span>🟢 Entradas</span><span>🔴 Saídas</span><span>🟠 Resultado</span></div><div id="monthly-chart" class="monthly-chart" aria-live="polite"></div>
+        </section>
         <section id="transactions" class="panel ledger" aria-labelledby="ledger-title">
           <div class="ledger-heading"><div><h2 id="ledger-title">Lançamentos</h2><p id="result-count" aria-live="polite">Carregando registros…</p></div><button id="refresh" class="secondary" type="button">Atualizar</button></div>
+          <div class="report-actions"><span>Exportar todos os resultados dos filtros:</span><button class="secondary" id="export-xlsx" type="button">Excel (.xlsx)</button><button class="secondary" id="export-pdf" type="button">PDF</button></div><p id="report-error" class="error" role="alert"></p>
           <div id="empty" class="empty" hidden><div class="empty-icon" aria-hidden="true">≡</div><h3>Nenhum lançamento por aqui.</h3><p>Registre uma entrada ou saída, ou ajuste os filtros para encontrar seus registros.</p><button class="secondary" id="empty-add" type="button">Criar lançamento</button></div>
           <div id="table-wrap" class="table-wrap"><table><caption class="sr-only">Entradas e saídas da Hefestus Maker</caption><thead><tr><th scope="col">Data</th><th scope="col">Descrição / impressão</th><th scope="col">Tipo</th><th scope="col">Peso</th><th scope="col" class="value-col">Valor</th><th scope="col">Ações</th></tr></thead><tbody id="entry-rows"></tbody></table></div>
           <div class="pagination"><span id="page-label">Página 1</span><div><button id="previous" class="secondary" type="button" disabled>Anterior</button><button id="next" class="secondary" type="button" disabled>Próxima</button></div></div>
         </section>
-        <footer class="footer"><span>© 2026 Hefestus Maker</span><span>Organização para continuar criando.</span></footer>
+        <section id="orders" class="panel orders-panel" aria-labelledby="orders-title"><div class="ledger-heading"><div><h2 id="orders-title">Pedidos de impressão</h2><p>Acompanhe a produção. Pedidos não alteram o saldo do caixa.</p></div><button id="new-order" class="primary" type="button">+ Novo pedido</button></div><form id="orders-filter" class="orders-filter"><div><label for="order-search">Buscar pedido ou cliente</label><input id="order-search" maxlength="160" type="search" placeholder="Descrição ou nome"></div><div><label for="order-filter-status">Etapa</label><select id="order-filter-status"><option value="">Todas</option><option value="orcamento">Orçamento</option><option value="aprovado">Aprovado</option><option value="imprimindo">Imprimindo</option><option value="entregue">Entregue</option></select></div><button class="secondary" type="submit">Buscar pedidos</button></form><p id="orders-error" class="error" role="alert"></p><p id="orders-count" class="orders-count" aria-live="polite"></p><div id="order-board" class="order-board"></div><div class="pagination"><span id="orders-page"></span><div><button id="orders-prev" class="secondary" type="button">Anterior</button><button id="orders-next" class="secondary" type="button">Próxima</button></div></div></section>
+        <footer class="footer"><span>© 2026 Hefestus Maker · v1.1</span><span>Organização para continuar criando.</span></footer>
       </main>
     </div>
   </div>
@@ -68,6 +74,7 @@
     </form>
   </dialog>
   <dialog id="delete-dialog" class="small-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Excluir lançamento?</h2><p id="delete-description"></p><p>O valor será retirado dos totais. O histórico permanece preservado no banco.</p><p id="delete-error" class="error" role="alert"></p><div class="dialog-actions"><button class="secondary" id="cancel-delete" type="button">Cancelar</button><button class="danger" id="confirm-delete" type="button">Excluir lançamento</button></div></dialog>
+  <dialog id="order-dialog" aria-labelledby="order-title"><form id="order-form"><div class="dialog-heading"><h2 id="order-title">Novo pedido</h2><button id="close-order" type="button" class="icon-button" aria-label="Fechar pedido">×</button></div><label for="order-description">Descrição da impressão</label><textarea id="order-description" maxlength="2000" rows="3" required></textarea><div class="form-grid"><div><label for="order-contact">Cliente <span>opcional</span></label><input id="order-contact" maxlength="160"></div><div><label for="order-status">Etapa</label><select id="order-status"><option value="orcamento">Orçamento</option><option value="aprovado">Aprovado</option><option value="imprimindo">Imprimindo</option><option value="entregue">Entregue</option></select></div><div><label for="order-amount">Valor previsto (R$) <span>opcional</span></label><input id="order-amount" inputmode="decimal" pattern="[0-9]{1,9}([.,][0-9]{1,2})?" placeholder="Ex.: 80,00"></div><div><label for="order-weight">Peso (g) <span>opcional</span></label><input id="order-weight" inputmode="decimal" pattern="[0-9]{1,8}([.,][0-9]{1,2})?"></div><div><label for="order-due">Prazo <span>opcional</span></label><input id="order-due" type="date" min="2000-01-01" max="2100-12-31"></div></div><p id="order-error" class="error" role="alert"></p><div class="dialog-actions"><button id="cancel-order" class="secondary" type="button">Cancelar</button><button id="save-order" class="primary" type="submit">Salvar pedido</button></div></form></dialog>
   <div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>

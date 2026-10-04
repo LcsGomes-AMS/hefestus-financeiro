@@ -1,0 +1,48 @@
+import JSZip from 'jszip';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+const totals = rows => rows.reduce((t,r)=>{t[r.type]+=BigInt(r.amount_cents);return t;},{entrada:0n,saida:0n});
+const money = value => {const n=BigInt(value),a=n<0n?-n:n;return `${n<0n?'- ':''}R$ ${(a/100n).toLocaleString('pt-BR')},${String(a%100n).padStart(2,'0')}`;};
+const summary = meta => `Período: ${meta.from||'sem limite inicial'} a ${meta.to||'sem limite final'} | Tipo: ${meta.type||'todos'} | Busca: ${meta.search||'nenhuma'}`;
+const xml = text => String(text??'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+
+// Planilha OOXML real, com células de texto explícitas (sem executar fórmulas recebidas).
+export async function buildExcel(rows,meta) {
+  const zip=new JSZip(),t=totals(rows),table=[];
+  const txt=(v,s=0)=>({v,s}),num=(v,s=0)=>({v,s,n:true});
+  table.push([txt('Hefestus Maker — Lançamentos',1)],[txt(summary(meta))],[txt('Gerado em '+meta.generated+' (São Paulo)')]);
+  table.push([txt('Entradas'),num(Number(t.entrada)/100,2),txt('Saídas'),num(Number(t.saida)/100,2),txt('Saldo'),num(Number(t.entrada-t.saida)/100,2)]);
+  table.push(['Data','Tipo','Descrição / impressão','Cliente / fornecedor','Peso (g)','Entrada (R$)','Saída (R$)'].map(v=>txt(v,1)));
+  for(const r of rows)table.push([txt(r.date.split('-').reverse().join('/')),txt(r.type==='entrada'?'Entrada':'Saída'),txt(r.description,3),txt(r.contact,3),r.weight_grams==null?txt(''):num(Number(r.weight_grams)),num(r.type==='entrada'?Number(r.amount_cents)/100:0,2),num(r.type==='saida'?Number(r.amount_cents)/100:0,2)]);
+  const sheet=table.map((row,i)=>`<row r="${i+1}">${row.map((c,j)=>`<c r="${String.fromCharCode(65+j)}${i+1}" s="${c.s}"${c.n?'':' t="inlineStr"'}>${c.n?`<v>${c.v}</v>`:`<is><t xml:space="preserve">${xml(c.v)}</t></is>`}</c>`).join('')}</row>`).join('');
+  zip.file('[Content_Types].xml','<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
+  zip.file('_rels/.rels','<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+  zip.file('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Lançamentos" sheetId="1" r:id="rId1"/></sheets></workbook>');
+  zip.file('xl/_rels/workbook.xml.rels','<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  zip.file('xl/styles.xml','<?xml version="1.0"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF333333"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="4"><xf fontId="0" fillId="0" borderId="0" numFmtId="0"/><xf fontId="1" fillId="2" borderId="0" numFmtId="0" applyFill="1" applyFont="1"/><xf fontId="0" fillId="0" borderId="0" numFmtId="4" applyNumberFormat="1"/><xf fontId="0" fillId="0" borderId="0" numFmtId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>');
+  zip.file('xl/worksheets/sheet1.xml',`<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="5" topLeftCell="A6" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="2" width="15" customWidth="1"/><col min="3" max="3" width="65" customWidth="1"/><col min="4" max="4" width="28" customWidth="1"/><col min="5" max="7" width="20" customWidth="1"/></cols><sheetData>${sheet}</sheetData><autoFilter ref="A5:G${Math.max(5,table.length)}"/></worksheet>`);
+  return zip.generateAsync({type:'nodebuffer',compression:'DEFLATE'});
+}
+export async function buildPDF(rows,meta) {
+  const doc=await PDFDocument.create(),font=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold);
+  doc.setTitle('Hefestus Maker — Relatório financeiro');let page,y;const pages=[];
+  // A fonte PDF padrão cobre acentos do português; glifos não suportados são indicados por ?.
+  const safe=s=>Array.from(String(s)).map(c=>{try{font.encodeText(c);return c;}catch{return c==='\n'?'\n':'?';}}).join('');
+  const newPage=()=>{page=doc.addPage([595.28,841.89]);pages.push(page);y=780;page.drawText('HEFESTUS MAKER',{x:40,y:806,size:15,font:bold,color:rgb(.75,.35,0)});};
+  const line=(text,size=10,strong=false)=>{if(y<55)newPage();page.drawText(safe(text),{x:40,y,size,font:strong?bold:font});y-=size+5;};
+  function paragraph(text,size=10,strong=false){
+    const f=strong?bold:font;
+    for(const raw of safe(text).split('\n')){
+      let buffer='';for(const c of raw){if(f.widthOfTextAtSize(buffer+c,size)>510){line(buffer,size,strong);buffer='';}buffer+=c;}line(buffer,size,strong);
+    }
+  }
+  newPage();paragraph('Relatório de lançamentos',15,true);paragraph(summary(meta),9);paragraph('Gerado em '+meta.generated+' (São Paulo)',9);
+  const t=totals(rows);y-=8;paragraph(`Entradas: ${money(t.entrada)} | Saídas: ${money(t.saida)}`,11,true);paragraph('Saldo dos registros filtrados: '+money(t.entrada-t.saida),11,true);paragraph(`${rows.length} registro(s) · Todos os resultados dos filtros, não apenas a página visível.`,9);y-=12;
+  for(const [i,r]of rows.entries()){
+    if(y<130)newPage();
+    paragraph(`${i+1}. ${r.date.split('-').reverse().join('/')} | ${r.type==='entrada'?'ENTRADA':'SAÍDA'} | ${money(r.amount_cents)}`,11,true);
+    paragraph(r.description);paragraph(`Cliente / fornecedor: ${r.contact||'—'} | Peso: ${r.weight_grams==null?'—':String(r.weight_grams).replace('.',',')+' g'}`,9);y-=10;
+  }
+  if(!rows.length)paragraph('Nenhum lançamento encontrado para os filtros selecionados.');
+  for(const [i,p]of pages.entries())p.drawText(`Hefestus Maker | ${i+1} / ${pages.length}`,{x:40,y:28,font,size:8,color:rgb(.4,.4,.4)});
+  return doc.save();
+}

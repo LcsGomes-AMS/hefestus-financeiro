@@ -13,6 +13,7 @@ function toast(message) { $('toast').textContent=message; $('toast').hidden=fals
 function showLogin() {
   state.csrf=''; state.loadId++; state.items=[];
   $('entry-dialog').close(); $('delete-dialog').close();
+  document.dispatchEvent(new Event('hm-logout'));
   $('dashboard').hidden=true; $('login-screen').hidden=false; $('boot').hidden=true;
   $('entry-rows').replaceChildren();
 }
@@ -27,7 +28,7 @@ async function api(path, options={}) {
   }
   return data;
 }
-function loggedIn(session) {state.csrf=session.csrf; $('account-name').textContent=session.user; $('login-screen').hidden=true; $('dashboard').hidden=false; $('boot').hidden=true; $('login-password').value='';}
+function loggedIn(session) {state.csrf=session.csrf; $('account-name').textContent=session.user; $('login-screen').hidden=true; $('dashboard').hidden=false; $('boot').hidden=true; $('login-password').value=''; document.dispatchEvent(new Event('hm-login'));}
 function collectFilters() { return {from:$('from').value,to:$('to').value,type:$('filter-type').value,search:$('search').value.trim()}; }
 function summaryUnavailable() { for(const id of ['incoming','outgoing','balance']) $(id).textContent='—'; }
 async function loadEntries() {
@@ -41,6 +42,7 @@ async function loadEntries() {
     state.items=data.items; state.total=data.total;
     for(const id of ['incoming','outgoing','balance']) $(id).textContent=money(data.summary[id]);
     renderRows();
+    document.dispatchEvent(new Event('hm-entries'));
     $('result-count').textContent=`${data.total} ${data.total===1?'lançamento encontrado':'lançamentos encontrados'}`;
     $('page-label').textContent=`Página ${state.page} de ${Math.max(1,Math.ceil(data.total/20))}`;
     $('previous').disabled=state.page<=1; $('next').disabled=state.page*20>=data.total;
