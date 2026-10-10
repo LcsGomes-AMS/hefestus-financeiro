@@ -58,7 +58,7 @@ function renderRows() {
   for(const item of state.items) {
     const row=document.createElement('tr'); row.append(cell(formatDate(item.date),'date-cell'));
     const description=cell('','description-cell'); const title=document.createElement('strong');title.textContent=item.description;description.append(title);
-    if(item.contact){const contact=document.createElement('small');contact.textContent=item.contact;description.append(contact);}row.append(description);
+    if(item.contact){const contact=document.createElement('small');contact.textContent=item.contact;description.append(contact);}if(item.category && item.category!=='Sem categoria'){const categoryLabel=document.createElement('small');categoryLabel.textContent='Categoria: '+item.category;description.append(categoryLabel);}row.append(description);
     const type=cell('');const badge=document.createElement('span');badge.className='badge '+item.type;badge.textContent=item.type==='entrada'?'Entrada':'Saída';type.append(badge);row.append(type);
     row.append(cell(item.weight?Number(item.weight).toLocaleString('pt-BR',{maximumFractionDigits:2})+' g':'—','weight-cell'));
     row.append(cell((item.type==='saida'?'− ':'+ ')+money(item.amountCents),'value-col '+(item.type==='entrada'?'amount-in':'amount-out')));
@@ -70,7 +70,7 @@ function openEntry(item=null) {
   $('entry-form').reset();state.editing=item;state.draftId=item?.id || crypto.randomUUID();
   $('entry-title').textContent=item?'Editar lançamento':'Novo lançamento';$('entry-error').textContent='';
   $('entry-date').value=item?.date || today();$('amount').value=item?decimal(item.amountCents):'';
-  $('description').value=item?.description || '';$('contact').value=item?.contact || '';$('weight').value=item?.weight || '';
+  $('category').value=item?.category==='Sem categoria'?'':(item?.category||'');$('description').value=item?.description || '';$('contact').value=item?.contact || '';$('weight').value=item?.weight || '';
   $('entry-form').elements.type.value=item?.type || 'entrada';
   $('entry-dialog').showModal();$('amount').focus();
 }
@@ -96,7 +96,7 @@ for(const id of ['close-entry','cancel-entry'])$(id).addEventListener('click',cl
 $('entry-dialog').addEventListener('cancel',event=>{if(state.saving)event.preventDefault();});
 $('entry-form').addEventListener('submit',async event=>{
   event.preventDefault();if(state.saving)return;
-  const payload={id:state.draftId,type:$('entry-form').elements.type.value,date:$('entry-date').value,amount:$('amount').value.trim(),description:$('description').value.trim(),weight:$('weight').value.trim(),contact:$('contact').value.trim(),...(state.editing?{version:state.editing.version}:{})};
+  const payload={id:state.draftId,type:$('entry-form').elements.type.value,date:$('entry-date').value,amount:$('amount').value.trim(),description:$('description').value.trim(),category:$('category').value.trim(),weight:$('weight').value.trim(),contact:$('contact').value.trim(),...(state.editing?{version:state.editing.version}:{})};
   if(!payload.description){$('entry-error').textContent='Informe uma descrição.';return;}
   state.saving=true;$('save-entry').disabled=true;$('save-entry').textContent='Salvando…';$('entry-error').textContent='';
   try {

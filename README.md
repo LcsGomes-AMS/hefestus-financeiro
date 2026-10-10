@@ -1,5 +1,7 @@
 # Hefestus Maker — Financeiro
 
+**Versão 1.2:** PDF com logo, resumo e tabelas de receitas/gastos no formato de referência, além de categorias opcionais. Veja `ATUALIZAR-PDF-V1.2.md` antes de atualizar sua instalação.
+
 **Versão 1.1:** relatórios Excel/PDF, gráfico mensal clicável e pedidos de impressão. Para atualizar uma instalação existente, siga primeiro [ATUALIZAR-RENDER.md](ATUALIZAR-RENDER.md). Não é preciso recriar o banco nem o serviço.
 
 Sistema de entradas e saídas com acesso por senha, PostgreSQL no Neon e servidor Node.js no Render. O projeto é separado do site institucional entregue anteriormente.

@@ -48,3 +48,6 @@ CREATE TABLE IF NOT EXISTS hm_orders (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS hm_orders_status_idx ON hm_orders(status,created_at DESC);
+
+-- v1.2: migração aditiva, preserva todos os lançamentos anteriores.
+ALTER TABLE hm_entries ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'Sem categoria' CHECK(length(category) BETWEEN 1 AND 80);

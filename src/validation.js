@@ -23,6 +23,11 @@ export function version(value) {
   if (!Number.isInteger(value) || value < 1) throw new HttpError(400, 'Versão inválida. Atualize a lista.');
   return value;
 }
+export function category(value) {
+  if(value === undefined || value === null || value === '') return 'Sem categoria';
+  if(typeof value !== 'string' || value.trim().length > 80) throw new HttpError(400,'A categoria deve ter até 80 caracteres.');
+  return value.trim() || 'Sem categoria';
+}
 export function entry(body) {
   if (!body || !['entrada','saida'].includes(body.type)) throw new HttpError(400, 'Selecione entrada ou saída.');
   if (!validDate(body.date)) throw new HttpError(400, 'Informe uma data válida entre 2000 e 2100.');

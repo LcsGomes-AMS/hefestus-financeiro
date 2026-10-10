@@ -21,7 +21,7 @@ export function registerFeatures(app,pool) {
     const format=req.params.format;
     if(!['xlsx','pdf'].includes(format))throw new HttpError(400,'Formato de relatório inválido.');
     const {where,values}=filters(req.query);
-    const result=await pool.query(`SELECT to_char(entry_date,'YYYY-MM-DD') AS date,type,description,contact,weight_grams,amount_cents FROM hm_entries WHERE ${where} ORDER BY entry_date DESC,created_at DESC,id LIMIT 5001`,values);
+    const result=await pool.query(`SELECT to_char(entry_date,'YYYY-MM-DD') AS date,type,description,contact,weight_grams,amount_cents,category FROM hm_entries WHERE ${where} ORDER BY entry_date DESC,created_at DESC,id LIMIT 5001`,values);
     if(result.rows.length>5000)throw new HttpError(400,'O relatório excede 5.000 registros. Reduza o período ou aplique mais filtros.');
     const rows=result.rows;
     const meta={from:req.query.from||'',to:req.query.to||'',type:req.query.type||'',search:req.query.search||'',generated:new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})};

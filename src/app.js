@@ -2,12 +2,12 @@ import express from 'express';
 import { randomBytes, createHash, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { HttpError, entry, filters, uuid, version } from './validation.js';
+import { HttpError, entry, filters, uuid, version, category } from './validation.js';
 import { registerFeatures } from './features.js';
 const scrypt = promisify(scryptCallback);
 const hash = text => createHash('sha256').update(text).digest('hex');
-const serial = row => ({ id:row.id, type:row.type, date:row.date, amountCents:String(row.amount_cents), description:row.description, contact:row.contact, weight:row.weight_grams == null ? '' : String(row.weight_grams), version:row.version });
-const columns = "id,type,to_char(entry_date,'YYYY-MM-DD') AS date,amount_cents,description,contact,weight_grams,version";
+const serial = row => ({ id:row.id, type:row.type, date:row.date, amountCents:String(row.amount_cents), description:row.description, contact:row.contact, category:row.category || 'Sem categoria', weight:row.weight_grams == null ? '' : String(row.weight_grams), version:row.version });
+const columns = "id,type,to_char(entry_date,'YYYY-MM-DD') AS date,amount_cents,description,contact,weight_grams,category,version";
 
 export async function createApp({ pool, user, password, origin, production = false }) {
   if (!user || user.length > 100 || !password || password.length < 12 || password.length > 256) throw new Error('Configure ADMIN_USER e ADMIN_PASSWORD (12 a 256 caracteres).');
@@ -86,22 +86,22 @@ export async function createApp({ pool, user, password, origin, production = fal
   });
   async function mutate(req,res,action) {
     const id = uuid(action === 'create' ? req.body?.id : req.params.id);
-    const data = action === 'delete' ? null : entry(req.body);
+    const data = action === 'delete' ? null : {...entry(req.body),category:category(req.body.category)};
     if (action !== 'create') version(req.body?.version);
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       let result;
       if (action === 'create') {
-        result = await client.query(`INSERT INTO hm_entries(id,type,entry_date,amount_cents,description,contact,weight_grams) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING RETURNING ${columns}`,[id,data.type,data.date,data.amount,data.description,data.contact,data.weight]);
+        result = await client.query(`INSERT INTO hm_entries(id,type,entry_date,amount_cents,description,contact,weight_grams,category) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(id) DO NOTHING RETURNING ${columns}`,[id,data.type,data.date,data.amount,data.description,data.contact,data.weight,data.category]);
         if (!result.rowCount) {
           const existing = await client.query(`SELECT ${columns},deleted_at FROM hm_entries WHERE id=$1`,[id]);
           const row = existing.rows[0];
-          if (!row || row.deleted_at || row.type!==data.type || row.date!==data.date || String(row.amount_cents)!==String(data.amount) || row.description!==data.description || row.contact!==data.contact || Number(row.weight_grams)!==Number(data.weight)) throw new HttpError(409,'Esse envio já foi usado. Atualize a lista antes de continuar.');
+          if (!row || row.deleted_at || row.type!==data.type || row.date!==data.date || String(row.amount_cents)!==String(data.amount) || row.description!==data.description || row.contact!==data.contact || row.category!==data.category || Number(row.weight_grams)!==Number(data.weight)) throw new HttpError(409,'Esse envio já foi usado. Atualize a lista antes de continuar.');
           await client.query('COMMIT'); return res.json(serial(row));
         }
       } else if (action === 'update') {
-        result = await client.query(`UPDATE hm_entries SET type=$1,entry_date=$2,amount_cents=$3,description=$4,contact=$5,weight_grams=$6,version=version+1,updated_at=NOW() WHERE id=$7 AND version=$8 AND deleted_at IS NULL RETURNING ${columns}`,[data.type,data.date,data.amount,data.description,data.contact,data.weight,id,req.body.version]);
+        result = await client.query(`UPDATE hm_entries SET type=$1,entry_date=$2,amount_cents=$3,description=$4,contact=$5,weight_grams=$6,category=$9,version=version+1,updated_at=NOW() WHERE id=$7 AND version=$8 AND deleted_at IS NULL RETURNING ${columns}`,[data.type,data.date,data.amount,data.description,data.contact,data.weight,id,req.body.version,data.category]);
       } else {
         result = await client.query(`UPDATE hm_entries SET deleted_at=NOW(),updated_at=NOW(),version=version+1 WHERE id=$1 AND version=$2 AND deleted_at IS NULL RETURNING ${columns}`,[id,req.body.version]);
       }
