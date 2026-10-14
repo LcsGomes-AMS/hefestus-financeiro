@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { HttpError, entry, filters, uuid, version, category } from './validation.js';
 import { registerFeatures } from './features.js';
+import {registerPublicTracking,registerAdminTracking} from './tracking.js';
 const scrypt = promisify(scryptCallback);
 const hash = text => createHash('sha256').update(text).digest('hex');
 const serial = row => ({ id:row.id, type:row.type, date:row.date, amountCents:String(row.amount_cents), description:row.description, contact:row.contact, category:row.category || 'Sem categoria', weight:row.weight_grams == null ? '' : String(row.weight_grams), version:row.version });
@@ -37,6 +38,7 @@ export async function createApp({ pool, user, password, origin, production = fal
     if (!['GET','HEAD','OPTIONS'].includes(req.method) && req.get('origin') !== allowedOrigin) return res.status(403).json({error:'Origem inválida. Reabra o sistema pela URL configurada.'});
     next();
   });
+  registerPublicTracking(app,pool);
   const readToken = req => {
     const cookie = (req.headers.cookie || '').split(';').map(s=>s.trim()).find(s=>s.startsWith(cookieName+'='));
     const value = cookie?.slice(cookieName.length + 1) || '';
@@ -115,6 +117,7 @@ export async function createApp({ pool, user, password, origin, production = fal
   app.put('/api/entries/:id', (req,res) => mutate(req,res,'update'));
   app.delete('/api/entries/:id', (req,res) => mutate(req,res,'delete'));
   registerFeatures(app,pool);
+  registerAdminTracking(app,pool,allowedOrigin);
   app.use('/api', (req,res) => res.status(404).json({error:'Recurso não encontrado.'}));
   app.use(express.static(fileURLToPath(new URL('../public',import.meta.url)),{etag:true,maxAge:0}));
   app.use((error,req,res,next) => {

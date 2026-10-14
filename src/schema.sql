@@ -51,3 +51,9 @@ CREATE INDEX IF NOT EXISTS hm_orders_status_idx ON hm_orders(status,created_at D
 
 -- v1.2: migração aditiva, preserva todos os lançamentos anteriores.
 ALTER TABLE hm_entries ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'Sem categoria' CHECK(length(category) BETWEEN 1 AND 80);
+
+-- v1.3: links de acompanhamento; somente o hash do segredo é persistido.
+ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_token_hash TEXT;
+ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_expires_at TIMESTAMPTZ;
+ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_version INTEGER NOT NULL DEFAULT 0;
+CREATE UNIQUE INDEX IF NOT EXISTS hm_orders_tracking_token_idx ON hm_orders(tracking_token_hash) WHERE tracking_token_hash IS NOT NULL;

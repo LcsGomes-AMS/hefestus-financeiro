@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createApp} from '../src/app.js';
+import {inject} from './inject.js';
 // Test double apenas para autenticação. Não substitui os testes SQL de integração.
 function authPool(){
   const sessions=new Map();let attempts=0;
@@ -18,11 +19,17 @@ function authPool(){
 test('login, cookie, autorização, CSRF, logout e limite de tentativas',async t=>{
   const pool=authPool();const origin='http://localhost:3000';
   const app=await createApp({pool,user:'admin',password:'uma-senha-de-teste',origin});
-  const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
-  t.after(()=>new Promise(resolve=>server.close(resolve)));
-  const url=`http://127.0.0.1:${server.address().port}`;
+  const url='http://localhost:3000';
+  const fetch=async(target,options={})=>{
+    const result=await inject(app,{path:new URL(target).pathname,method:options.method||'GET',headers:options.headers||{},...(options.body?{body:JSON.parse(options.body)}:{})});
+    return {...result,headers:new Headers(result.headers)};
+  };
   const post=(path,body={},headers={})=>fetch(url+path,{method:'POST',headers:{origin,'Content-Type':'application/json',...headers},body:JSON.stringify(body)});
   assert.equal((await fetch(url+'/api/entries')).status,401);
+  assert.equal((await fetch(url+'/api/public/tracking')).status,404);
+  assert.equal((await fetch(url+'/api/orders/66177f37-33f2-4b7f-818c-a239bf89c273/tracking')).status,401);
+  assert.equal((await post('/api/orders/66177f37-33f2-4b7f-818c-a239bf89c273/tracking',{version:0})).status,401);
+  const customerPage=await fetch(url+'/acompanhar');assert.equal(customerPage.status,200);assert.equal(customerPage.headers.get('cache-control'),'no-store');
   assert.equal((await post('/api/login',{user:'admin',password:'uma-senha-de-teste'},{origin:'https://outro.example'})).status,403);
   assert.equal((await post('/api/login',{user:'admin',password:'incorreta'})).status,401);
   const login=await post('/api/login',{user:'admin',password:'uma-senha-de-teste'});

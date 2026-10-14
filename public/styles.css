@@ -20,3 +20,5 @@ body{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(saf
 .install-help{font-size:.8rem;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
 .install-help summary{cursor:pointer;color:#efae6a;min-height:32px}.install-help p{margin-top:12px}
 @media(max-width:700px){input,select,textarea{font-size:16px!important}}
+
+#tracking-order-title{font-weight:600;overflow-wrap:anywhere;font-size:.9rem;margin-bottom:12px}#tracking-state{color:#edb16f;font-size:.85rem}.tracking-help{font-size:.8rem;color:var(--muted);margin:16px 0}.tracking-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}#tracking-link{font-size:.8rem}#tracking-dialog .dialog-actions{flex-wrap:wrap}
