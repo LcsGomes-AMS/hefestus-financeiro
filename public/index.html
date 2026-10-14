@@ -1,11 +1,18 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Hefestus">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
   <meta name="theme-color" content="#101113"><meta name="robots" content="noindex,nofollow">
   <title>Financeiro | Hefestus Maker</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script><script src="features.js" defer></script>
+  <script src="/pwa.js" defer></script>
 </head>
 <body>
   <div id="boot" class="boot" role="status">Carregando Hefestus Financeiro…</div>
@@ -18,6 +25,7 @@
       <label for="login-password">Senha</label><input id="login-password" type="password" autocomplete="current-password" maxlength="256" required>
       <p id="login-error" class="error" role="alert"></p><button class="primary" type="submit">Entrar no painel</button>
       <small>Acesso restrito à empresa.</small>
+      <details class="install-help" id="install-help"><summary>Instalar no iPhone</summary><p>Abra este endereço no Safari, toque em Compartilhar e em Adicionar à Tela de Início. Ative Abrir como App da Web, se aparecer, e confirme. Depois, abra pelo novo ícone.</p><p>Se já tinha um atalho, remova-o e adicione novamente após a atualização.</p></details>
     </form>
   </section>
   <div id="dashboard" class="dashboard" hidden>
@@ -59,7 +67,7 @@
           <div class="pagination"><span id="page-label">Página 1</span><div><button id="previous" class="secondary" type="button" disabled>Anterior</button><button id="next" class="secondary" type="button" disabled>Próxima</button></div></div>
         </section>
         <section id="orders" class="panel orders-panel" aria-labelledby="orders-title"><div class="ledger-heading"><div><h2 id="orders-title">Pedidos de impressão</h2><p>Acompanhe a produção. Pedidos não alteram o saldo do caixa.</p></div><button id="new-order" class="primary" type="button">+ Novo pedido</button></div><form id="orders-filter" class="orders-filter"><div><label for="order-search">Buscar pedido ou cliente</label><input id="order-search" maxlength="160" type="search" placeholder="Descrição ou nome"></div><div><label for="order-filter-status">Etapa</label><select id="order-filter-status"><option value="">Todas</option><option value="orcamento">Orçamento</option><option value="aprovado">Aprovado</option><option value="imprimindo">Imprimindo</option><option value="entregue">Entregue</option></select></div><button class="secondary" type="submit">Buscar pedidos</button></form><p id="orders-error" class="error" role="alert"></p><p id="orders-count" class="orders-count" aria-live="polite"></p><div id="order-board" class="order-board"></div><div class="pagination"><span id="orders-page"></span><div><button id="orders-prev" class="secondary" type="button">Anterior</button><button id="orders-next" class="secondary" type="button">Próxima</button></div></div></section>
-        <footer class="footer"><span>© 2026 Hefestus Maker · v1.2</span><span>Organização para continuar criando.</span></footer>
+        <footer class="footer"><span>© 2026 Hefestus Maker · v1.2.1</span><span>Organização para continuar criando.</span></footer>
       </main>
     </div>
   </div>

@@ -13,3 +13,10 @@ dialog{background:#1b1d21;color:var(--text);border:1px solid #464950;border-radi
 @media(max-width:1200px){.order-board{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.order-board{grid-template-columns:1fr}.report-actions span{flex-basis:100%}.chart-panel .ledger-heading{padding-bottom:16px}}
 
 .category-help{font-size:.75rem;color:var(--muted);margin:7px 0 20px}
+/* Área segura do iPhone, inclusive em janela independente. */
+body{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.login-screen,.boot{min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.install-help{font-size:.8rem;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+.install-help summary{cursor:pointer;color:#efae6a;min-height:32px}.install-help p{margin-top:12px}
+@media(max-width:700px){input,select,textarea{font-size:16px!important}}
