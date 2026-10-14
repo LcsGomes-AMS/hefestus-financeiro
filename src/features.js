@@ -1,5 +1,6 @@
 import { HttpError, filters, uuid, version, entry, validDate } from './validation.js';
 import { buildExcel, buildPDF } from './reports.js';
+import {deleteOrder} from './orders.js';
 export const statuses = ['orcamento','aprovado','imprimindo','entregue'];
 const orderColumns = "id,description,contact,status,amount_cents,weight_grams,to_char(due_date,'YYYY-MM-DD') AS due_date,version";
 const serialize = row => ({id:row.id,description:row.description,contact:row.contact,status:row.status,amount:row.amount_cents==null?'':(BigInt(row.amount_cents)/100n)+'.'+String(BigInt(row.amount_cents)%100n).padStart(2,'0'),weight:row.weight_grams==null?'':String(row.weight_grams),dueDate:row.due_date||'',version:row.version});
@@ -10,6 +11,7 @@ export function validateOrder(body) {
   return {...data,status:body.status,amount:body.amount===''?null:data.amount,due:body.dueDate||null};
 }
 export function registerFeatures(app,pool) {
+  app.delete('/api/orders/:id',async(req,res)=>res.json(await deleteOrder(pool,req.params.id,req.body?.version)));
   // Estas rotas são registradas após a autenticação e a proteção CSRF.
   app.get('/api/monthly',async(req,res)=>{
     const year=Number(req.query.year);
@@ -32,7 +34,7 @@ export function registerFeatures(app,pool) {
   app.get('/api/orders',async(req,res)=>{
     const search=req.query.search||'',status=req.query.status||'',page=Number(req.query.page||1);
     if(typeof search!=='string'||search.length>160||(status&&!statuses.includes(status))||!Number.isInteger(page)||page<1||page>100000)throw new HttpError(400,'Filtros de pedidos inválidos.');
-    const args=[],conditions=['TRUE'];
+    const args=[],conditions=['deleted_at IS NULL'];
     if(search.trim()){args.push('%'+search.trim().replace(/[\\%_]/g,'\\$&')+'%');conditions.push(`(description ILIKE $${args.length} OR contact ILIKE $${args.length})`);}
     if(status){args.push(status);conditions.push(`status=$${args.length}`);}
     const where=conditions.join(' AND '), client=await pool.connect();
@@ -47,15 +49,15 @@ export function registerFeatures(app,pool) {
     const id=uuid(req.body?.id),data=validateOrder(req.body);
     const result=await pool.query(`INSERT INTO hm_orders(id,description,contact,status,amount_cents,weight_grams,due_date) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING RETURNING ${orderColumns}`,[id,data.description,data.contact,data.status,data.amount,data.weight,data.due]);
     if(!result.rowCount){
-      const existing=await pool.query(`SELECT ${orderColumns} FROM hm_orders WHERE id=$1`,[id]);const row=existing.rows[0];
-      if(!row||row.description!==data.description||row.contact!==data.contact||row.status!==data.status||String(row.amount_cents)!==String(data.amount)||Number(row.weight_grams)!==Number(data.weight)||(row.due_date||null)!==data.due)throw new HttpError(409,'Pedido já registrado. Atualize o quadro antes de continuar.');
+      const existing=await pool.query(`SELECT ${orderColumns},deleted_at FROM hm_orders WHERE id=$1`,[id]);const row=existing.rows[0];
+      if(!row||row.deleted_at||row.description!==data.description||row.contact!==data.contact||row.status!==data.status||String(row.amount_cents)!==String(data.amount)||Number(row.weight_grams)!==Number(data.weight)||(row.due_date||null)!==data.due)throw new HttpError(409,'Pedido já registrado. Atualize o quadro antes de continuar.');
       return res.json(serialize(row));
     }
     res.status(201).json(serialize(result.rows[0]));
   });
   app.put('/api/orders/:id',async(req,res)=>{
     const id=uuid(req.params.id),data=validateOrder(req.body),v=version(req.body?.version);
-    const result=await pool.query(`UPDATE hm_orders SET description=$1,contact=$2,status=$3,amount_cents=$4,weight_grams=$5,due_date=$6,version=version+1,updated_at=NOW() WHERE id=$7 AND version=$8 RETURNING ${orderColumns}`,[data.description,data.contact,data.status,data.amount,data.weight,data.due,id,v]);
+    const result=await pool.query(`UPDATE hm_orders SET description=$1,contact=$2,status=$3,amount_cents=$4,weight_grams=$5,due_date=$6,version=version+1,updated_at=NOW() WHERE id=$7 AND version=$8 AND deleted_at IS NULL RETURNING ${orderColumns}`,[data.description,data.contact,data.status,data.amount,data.weight,data.due,id,v]);
     if(!result.rowCount)throw new HttpError(409,'Pedido alterado em outra aba. Atualize o quadro e tente novamente.');
     res.json(serialize(result.rows[0]));
   });

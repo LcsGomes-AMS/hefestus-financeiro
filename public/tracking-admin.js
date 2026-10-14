@@ -39,3 +39,5 @@ $('copy-tracking').addEventListener('click',async()=>{
   catch{$('tracking-link').focus();$('tracking-link').select();$('tracking-error-admin').textContent='Selecione e copie o link no campo acima.';}
 });
 document.addEventListener('hm-logout',()=>{trackingCache.clear();linkState.request++;linkState.meta=null;$('tracking-dialog').close();$('tracking-link').value='';$('preview-tracking').removeAttribute('href');});
+
+document.addEventListener('hm-order-deleted',event=>{trackingCache.delete(event.detail.id);if(linkState.order?.id===event.detail.id){linkState.request++;linkState.meta=null;$('tracking-dialog').close();$('tracking-link').value='';$('preview-tracking').removeAttribute('href');}});

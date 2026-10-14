@@ -57,3 +57,6 @@ ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_token_hash TEXT;
 ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_expires_at TIMESTAMPTZ;
 ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS tracking_version INTEGER NOT NULL DEFAULT 0;
 CREATE UNIQUE INDEX IF NOT EXISTS hm_orders_tracking_token_idx ON hm_orders(tracking_token_hash) WHERE tracking_token_hash IS NOT NULL;
+
+-- v1.3.1: exclusão lógica de pedidos; preserva os dados existentes.
+ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;

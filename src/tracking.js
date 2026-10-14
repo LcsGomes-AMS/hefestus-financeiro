@@ -10,25 +10,25 @@ function checkVersion(value){if(!Number.isInteger(value)||value<0)throw new Http
 
 export async function readTracking(pool,token){
   if(typeof token!=='string'||!tokenFormat.test(token))throw new HttpError(404,'Link indisponível. Solicite um novo link à Hefestus Maker.');
-  const result=await pool.query("SELECT id,status,to_char(due_date,'YYYY-MM-DD') AS due_date,updated_at FROM hm_orders WHERE tracking_token_hash=$1 AND tracking_expires_at > NOW()",[digest(token)]);
+  const result=await pool.query("SELECT id,status,to_char(due_date,'YYYY-MM-DD') AS due_date,updated_at FROM hm_orders WHERE tracking_token_hash=$1 AND tracking_expires_at > NOW() AND deleted_at IS NULL",[digest(token)]);
   const row=result.rows[0];
   if(!row)throw new HttpError(404,'Link indisponível. Solicite um novo link à Hefestus Maker.');
   // Lista explícita: nenhum dado do caixa, contato ou descrição interna é retornado.
   return {reference:row.id.slice(0,8).toUpperCase(),status:row.status,dueDate:row.due_date||null,updatedAt:new Date(row.updated_at).toISOString()};
 }
 export async function trackingState(pool,id){
-  const result=await pool.query(`SELECT ${trackingColumns} FROM hm_orders WHERE id=$1`,[uuid(id)]);
+  const result=await pool.query(`SELECT ${trackingColumns} FROM hm_orders WHERE id=$1 AND deleted_at IS NULL`,[uuid(id)]);
   if(!result.rowCount)throw new HttpError(404,'Pedido não encontrado.');return state(result.rows[0]);
 }
 export async function issueTracking(pool,id,version,origin){
   uuid(id);checkVersion(version);const token=randomBytes(32).toString('hex');
-  const result=await pool.query(`UPDATE hm_orders SET tracking_token_hash=$1,tracking_expires_at=NOW()+INTERVAL '90 days',tracking_version=tracking_version+1 WHERE id=$2 AND tracking_version=$3 RETURNING ${trackingColumns}`,[digest(token),id,version]);
+  const result=await pool.query(`UPDATE hm_orders SET tracking_token_hash=$1,tracking_expires_at=NOW()+INTERVAL '90 days',tracking_version=tracking_version+1 WHERE id=$2 AND tracking_version=$3 AND deleted_at IS NULL RETURNING ${trackingColumns}`,[digest(token),id,version]);
   if(!result.rowCount)throw new HttpError(409,'O link foi alterado em outra aba. Feche e abra o acompanhamento novamente.');
   return {...state(result.rows[0]),url:new URL('/acompanhar#'+token,origin).href};
 }
 export async function revokeTracking(pool,id,version){
   uuid(id);checkVersion(version);
-  const result=await pool.query(`UPDATE hm_orders SET tracking_token_hash=NULL,tracking_expires_at=NULL,tracking_version=tracking_version+1 WHERE id=$1 AND tracking_version=$2 RETURNING ${trackingColumns}`,[id,version]);
+  const result=await pool.query(`UPDATE hm_orders SET tracking_token_hash=NULL,tracking_expires_at=NULL,tracking_version=tracking_version+1 WHERE id=$1 AND tracking_version=$2 AND deleted_at IS NULL RETURNING ${trackingColumns}`,[id,version]);
   if(!result.rowCount)throw new HttpError(409,'O link foi alterado em outra aba. Feche e abra o acompanhamento novamente.');
   return state(result.rows[0]);
 }

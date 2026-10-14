@@ -1,5 +1,7 @@
 # Hefestus Maker — Financeiro
 
+**Versão 1.3.1:** botão **Excluir pedido**, confirmação e desativação automática do acompanhamento. Siga [EXCLUIR-PEDIDOS-V1.3.1.md](EXCLUIR-PEDIDOS-V1.3.1.md) para usar e atualizar no Render. Inclui o modo app para iPhone e os recursos anteriores.
+
 **Versão 1.3:** acompanhamento privado do pedido para o cliente, com geração, cópia, renovação e desativação de links. Siga [ACOMPANHAMENTO-V1.3.md](ACOMPANHAMENTO-V1.3.md) para usar e atualizar no Render. Inclui os recursos anteriores e o modo aplicativo para iPhone.
 
 **Versão 1.2:** PDF com logo, resumo e tabelas de receitas/gastos no formato de referência, além de categorias opcionais. Veja `ATUALIZAR-PDF-V1.2.md` antes de atualizar sua instalação.
