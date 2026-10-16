@@ -1,5 +1,7 @@
 # Hefestus Maker — Financeiro
 
+**Versão 1.6.0:** etapa **Em acabamento** entre **Imprimindo** e **Entregue**, no quadro, na edição, nos filtros e no acompanhamento do cliente. Veja [ACABAMENTO-V1.6.md](ACABAMENTO-V1.6.md) para usar e atualizar no Render. A receita continua sendo registrada somente na entrega. Inclui os comprovantes e todos os recursos anteriores.
+
 **Versão 1.5.1:** botão **Comprovantes** em cada pedido para anexar, visualizar, baixar e remover imagens/PDF recebidos do cliente. Os arquivos são salvos no Neon, com acesso administrativo. Veja [COMPROVANTES-CLIENTE-V1.5.1.md](COMPROVANTES-CLIENTE-V1.5.1.md) para usar e atualizar no Render. Anexar arquivos não altera o saldo. Inclui os recursos anteriores e o modo app para iPhone.
 
 **Versão 1.4:** marcar um pedido como **Entregue** registra uma entrada financeira única com o valor do pedido. Veja [ENTREGA-NO-SALDO-V1.4.md](ENTREGA-NO-SALDO-V1.4.md) para usar e atualizar no Render. Pedidos anteriores já entregues não são lançados retroativamente. Inclui o modo app para iPhone e os recursos das versões anteriores.

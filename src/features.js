@@ -2,7 +2,7 @@ import { HttpError, filters, uuid, version, entry, validDate } from './validatio
 import { buildExcel, buildPDF } from './reports.js';
 import {deleteOrder} from './orders.js';
 import {orderColumns,serializeOrder as serialize,createOrder,updateOrder} from './order-finance.js';
-export const statuses = ['orcamento','aprovado','imprimindo','entregue'];
+export const statuses = ['orcamento','aprovado','imprimindo','acabamento','entregue'];
 export function validateOrder(body) {
   if(!body || !statuses.includes(body.status)) throw new HttpError(400,'Etapa do pedido inválida.');
   if(body.status==='entregue' && (body.amount==='' || body.amount==null))throw new HttpError(400,'Informe o valor do pedido antes de marcar como entregue.');

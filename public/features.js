@@ -1,5 +1,5 @@
 'use strict';
-const statusNames={orcamento:'Orçamento',aprovado:'Aprovado',imprimindo:'Imprimindo',entregue:'Entregue'};
+const statusNames={orcamento:'Orçamento',aprovado:'Aprovado',imprimindo:'Imprimindo',acabamento:'Em acabamento',entregue:'Entregue'};
 const orderState={items:[],page:1,total:0,editing:null,id:'',busy:false,request:0,query:{}};
 let chartRequest=0;
 const tag=(name,text,className='')=>{const node=document.createElement(name);node.textContent=text;node.className=className;return node;};

@@ -1,6 +1,6 @@
 'use strict';
-const get=id=>document.getElementById(id),stages=['orcamento','aprovado','imprimindo','entregue'];
-const labels={orcamento:'Em orçamento',aprovado:'Aprovado',imprimindo:'Em impressão',entregue:'Entregue'};
+const get=id=>document.getElementById(id),stages=['orcamento','aprovado','imprimindo','acabamento','entregue'];
+const labels={orcamento:'Em orçamento',aprovado:'Aprovado',imprimindo:'Em impressão',acabamento:'Em acabamento',entregue:'Entregue'};
 let loading=false,timer;
 const dateTime=value=>new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'}).format(new Date(value));
 async function load(){

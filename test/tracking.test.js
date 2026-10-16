@@ -26,6 +26,7 @@ test('link aleatório persiste somente hash e resposta pública expõe apenas ac
   assert.notEqual(pool.row.tracking_token_hash,token);assert.equal(pool.row.tracking_token_hash,createHash('sha256').update(token).digest('hex'));
   const data=await readTracking(pool,token);assert.deepEqual(Object.keys(data).sort(),['dueDate','reference','status','updatedAt']);assert.equal(data.status,'imprimindo');assert.equal(data.dueDate,'2026-10-23');
   assert.ok(!JSON.stringify(data).includes('Cliente interno'));assert.ok(!JSON.stringify(await trackingState(pool,pool.row.id)).includes(token));
+  pool.row.status='acabamento';const finishing=await readTracking(pool,token);assert.equal(finishing.status,'acabamento');assert.deepEqual(Object.keys(finishing).sort(),['dueDate','reference','status','updatedAt']);
   pool.row.status='entregue';assert.equal((await readTracking(pool,token)).status,'entregue');
 });
 test('renovação e desativação invalidam tokens antigos; versões impedem ações concorrentes',async()=>{

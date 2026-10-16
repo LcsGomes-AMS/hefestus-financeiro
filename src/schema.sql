@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS hm_orders (
   id UUID PRIMARY KEY,
   description TEXT NOT NULL CHECK(length(description) BETWEEN 1 AND 2000),
   contact TEXT NOT NULL DEFAULT '' CHECK(length(contact) <= 160),
-  status TEXT NOT NULL DEFAULT 'orcamento' CHECK(status IN ('orcamento','aprovado','imprimindo','entregue')),
+  status TEXT NOT NULL DEFAULT 'orcamento' CONSTRAINT hm_orders_status_v16_check CHECK(status IN ('orcamento','aprovado','imprimindo','acabamento','entregue')),
   amount_cents BIGINT CHECK(amount_cents BETWEEN 1 AND 99999999999),
   weight_grams NUMERIC(12,2) CHECK(weight_grams > 0 AND weight_grams <= 99999999.99),
   due_date DATE,
@@ -80,3 +80,18 @@ CREATE TABLE IF NOT EXISTS hm_order_proofs (
   CHECK(octet_length(file_data)=file_size)
 );
 CREATE INDEX IF NOT EXISTS hm_order_proofs_order_idx ON hm_order_proofs(order_id,created_at DESC);
+
+-- v1.6: amplia as etapas de pedidos existentes sem alterar registros ou links.
+-- O nome da restrição identifica a migração: reiniciar não recria o CHECK.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid='hm_orders'::regclass AND conname='hm_orders_status_v16_check'
+  ) THEN
+    ALTER TABLE hm_orders DROP CONSTRAINT IF EXISTS hm_orders_status_check;
+    ALTER TABLE hm_orders ADD CONSTRAINT hm_orders_status_v16_check
+      CHECK(status IN ('orcamento','aprovado','imprimindo','acabamento','entregue'));
+  END IF;
+END;
+$$;

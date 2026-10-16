@@ -40,10 +40,21 @@ test('editar/excluir pedido não modifica receita; receita excluída não reapar
   e.deleted_at=new Date();await updateOrder(pool,id,2,data('imprimindo','150,00'),'admin');const again=await updateOrder(pool,id,3,data('entregue','150,00'),'admin');assert.equal(again.creditCreated,false);assert.equal(again.financialEntry.deleted,true);assert.equal(pool.state.entries.size,1);
   await deleteOrder(pool,id,4);assert.equal(pool.state.entries.size,1);
 });
-test('API integra botão/edição com lançamento e total financeiro',async()=>{
+test('API passa por acabamento sem receita e registra saldo somente na entrega',async()=>{
   const pool=deliveryRepository(),app=await createApp({pool,user:'admin',password:'senha-de-teste-123',origin:'http://localhost:3000'});
   const headers={origin:'http://localhost:3000',cookie:'hm_session='+'1'.repeat(64),'x-csrf-token':'test-csrf'};
   assert.equal((await inject(app,{path:'/api/orders',method:'POST',body:{id,...payload()},headers})).status,201);
-  const changed=await inject(app,{path:'/api/orders/'+id,method:'PUT',body:{version:1,...payload('entregue')},headers});assert.equal(changed.status,200);assert.equal(changed.json().creditCreated,true);
+  const finishing=await inject(app,{path:'/api/orders/'+id,method:'PUT',body:{version:1,...payload('acabamento')},headers});assert.equal(finishing.status,200);assert.equal(finishing.json().status,'acabamento');assert.equal(finishing.json().creditCreated,false);assert.equal(finishing.json().financialEntry,null);
+  assert.equal((await inject(app,{path:'/api/entries',headers})).json().summary.balance,'0');
+  assert.equal((await inject(app,{path:'/api/orders?status=acabamento',headers})).status,200);assert.ok(pool.queries.some(q=>q.startsWith('SELECT COUNT(*) AS total')&&q.includes('status=$1')));
+  const changed=await inject(app,{path:'/api/orders/'+id,method:'PUT',body:{version:2,...payload('entregue')},headers});assert.equal(changed.status,200);assert.equal(changed.json().creditCreated,true);
   const ledger=await inject(app,{path:'/api/entries',headers});assert.equal(ledger.status,200);assert.equal(ledger.json().summary.balance,'12000');assert.equal(ledger.json().items[0].orderId,id);
+});
+
+test('acabamento aceita pedido sem valor e voltar à etapa não duplica recebimento',async()=>{
+  const pool=deliveryRepository();const first=await createOrder(pool,id,data('acabamento',''),'admin');assert.equal(first.status,'acabamento');assert.equal(first.amount,'');assert.equal(pool.state.entries.size,0);
+  assert.throws(()=>data('entregue',''),{status:400});assert.equal(pool.state.orders.get(id).version,1);
+  const delivered=await updateOrder(pool,id,1,data('entregue'),'admin');assert.equal(delivered.creditCreated,true);
+  const finishing=await updateOrder(pool,id,2,data('acabamento'),'admin');assert.equal(finishing.creditCreated,false);assert.equal(finishing.financialEntry.amountCents,'12000');
+  const again=await updateOrder(pool,id,3,data('entregue'),'admin');assert.equal(again.creditCreated,false);assert.equal(pool.state.entries.size,1);
 });
