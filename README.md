@@ -1,5 +1,7 @@
 # Hefestus Maker — Financeiro
 
+**Versão 1.4:** marcar um pedido como **Entregue** registra uma entrada financeira única com o valor do pedido. Veja [ENTREGA-NO-SALDO-V1.4.md](ENTREGA-NO-SALDO-V1.4.md) para usar e atualizar no Render. Pedidos anteriores já entregues não são lançados retroativamente. Inclui o modo app para iPhone e os recursos das versões anteriores.
+
 **Versão 1.3.1:** botão **Excluir pedido**, confirmação e desativação automática do acompanhamento. Siga [EXCLUIR-PEDIDOS-V1.3.1.md](EXCLUIR-PEDIDOS-V1.3.1.md) para usar e atualizar no Render. Inclui o modo app para iPhone e os recursos anteriores.
 
 **Versão 1.3:** acompanhamento privado do pedido para o cliente, com geração, cópia, renovação e desativação de links. Siga [ACOMPANHAMENTO-V1.3.md](ACOMPANHAMENTO-V1.3.md) para usar e atualizar no Render. Inclui os recursos anteriores e o modo aplicativo para iPhone.

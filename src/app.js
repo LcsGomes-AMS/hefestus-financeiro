@@ -7,8 +7,8 @@ import { registerFeatures } from './features.js';
 import {registerPublicTracking,registerAdminTracking} from './tracking.js';
 const scrypt = promisify(scryptCallback);
 const hash = text => createHash('sha256').update(text).digest('hex');
-const serial = row => ({ id:row.id, type:row.type, date:row.date, amountCents:String(row.amount_cents), description:row.description, contact:row.contact, category:row.category || 'Sem categoria', weight:row.weight_grams == null ? '' : String(row.weight_grams), version:row.version });
-const columns = "id,type,to_char(entry_date,'YYYY-MM-DD') AS date,amount_cents,description,contact,weight_grams,category,version";
+const serial = row => ({ id:row.id, type:row.type, date:row.date, amountCents:String(row.amount_cents), description:row.description, contact:row.contact, category:row.category || 'Sem categoria', orderId:row.order_id||null, weight:row.weight_grams == null ? '' : String(row.weight_grams), version:row.version });
+const columns = "id,type,to_char(entry_date,'YYYY-MM-DD') AS date,amount_cents,description,contact,weight_grams,category,version,order_id";
 
 export async function createApp({ pool, user, password, origin, production = false }) {
   if (!user || user.length > 100 || !password || password.length < 12 || password.length > 256) throw new Error('Configure ADMIN_USER e ADMIN_PASSWORD (12 a 256 caracteres).');
@@ -116,7 +116,7 @@ export async function createApp({ pool, user, password, origin, production = fal
   app.post('/api/entries', (req,res) => mutate(req,res,'create'));
   app.put('/api/entries/:id', (req,res) => mutate(req,res,'update'));
   app.delete('/api/entries/:id', (req,res) => mutate(req,res,'delete'));
-  registerFeatures(app,pool);
+  registerFeatures(app,pool,user);
   registerAdminTracking(app,pool,allowedOrigin);
   app.use('/api', (req,res) => res.status(404).json({error:'Recurso não encontrado.'}));
   app.use(express.static(fileURLToPath(new URL('../public',import.meta.url)),{etag:true,maxAge:0}));

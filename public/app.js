@@ -58,7 +58,7 @@ function renderRows() {
   for(const item of state.items) {
     const row=document.createElement('tr'); row.append(cell(formatDate(item.date),'date-cell'));
     const description=cell('','description-cell'); const title=document.createElement('strong');title.textContent=item.description;description.append(title);
-    if(item.contact){const contact=document.createElement('small');contact.textContent=item.contact;description.append(contact);}if(item.category && item.category!=='Sem categoria'){const categoryLabel=document.createElement('small');categoryLabel.textContent='Categoria: '+item.category;description.append(categoryLabel);}row.append(description);
+    if(item.contact){const contact=document.createElement('small');contact.textContent=item.contact;description.append(contact);}if(item.orderId){const origin=document.createElement('small');origin.textContent='Receita de entrega · pedido '+item.orderId.slice(0,8).toUpperCase();description.append(origin);}if(item.category && item.category!=='Sem categoria'){const categoryLabel=document.createElement('small');categoryLabel.textContent='Categoria: '+item.category;description.append(categoryLabel);}row.append(description);
     const type=cell('');const badge=document.createElement('span');badge.className='badge '+item.type;badge.textContent=item.type==='entrada'?'Entrada':'Saída';type.append(badge);row.append(type);
     row.append(cell(item.weight?Number(item.weight).toLocaleString('pt-BR',{maximumFractionDigits:2})+' g':'—','weight-cell'));
     row.append(cell((item.type==='saida'?'− ':'+ ')+money(item.amountCents),'value-col '+(item.type==='entrada'?'amount-in':'amount-out')));

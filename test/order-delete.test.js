@@ -19,7 +19,7 @@ function repository(){
     if(sql.startsWith('SELECT tracking_version'))return{rows:[],rowCount:0};
     if(sql.startsWith('SELECT COUNT(*) AS total')){assert.match(sql,/deleted_at IS NULL/);return{rows:[{total:row.deleted_at?'0':'1'}],rowCount:1};}
     if(sql.startsWith('SELECT id,description')){assert.match(sql,/deleted_at IS NULL/);return{rows:row.deleted_at?[]:[row],rowCount:row.deleted_at?0:1};}
-    if(['BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY','COMMIT','ROLLBACK'].includes(sql))return{rows:[],rowCount:0};
+    if(['BEGIN','BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY','COMMIT','ROLLBACK'].includes(sql))return{rows:[],rowCount:0};
     throw Error('SQL não previsto no repositório de teste: '+sql);
   }};return pool;
 }

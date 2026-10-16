@@ -60,3 +60,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS hm_orders_tracking_token_idx ON hm_orders(trac
 
 -- v1.3.1: exclusão lógica de pedidos; preserva os dados existentes.
 ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- v1.4: uma única receita automática por pedido, inclusive após exclusão lógica.
+ALTER TABLE hm_entries ADD COLUMN IF NOT EXISTS order_id UUID REFERENCES hm_orders(id);
+CREATE UNIQUE INDEX IF NOT EXISTS hm_entries_order_id_idx ON hm_entries(order_id);
