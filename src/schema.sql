@@ -64,3 +64,19 @@ ALTER TABLE hm_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 -- v1.4: uma única receita automática por pedido, inclusive após exclusão lógica.
 ALTER TABLE hm_entries ADD COLUMN IF NOT EXISTS order_id UUID REFERENCES hm_orders(id);
 CREATE UNIQUE INDEX IF NOT EXISTS hm_entries_order_id_idx ON hm_entries(order_id);
+
+-- v1.5.1: comprovantes enviados pelo cliente, persistidos no Neon.
+CREATE TABLE IF NOT EXISTS hm_order_proofs (
+  id UUID PRIMARY KEY,
+  order_id UUID NOT NULL REFERENCES hm_orders(id),
+  filename TEXT NOT NULL CHECK(length(filename) BETWEEN 1 AND 160),
+  mime_type TEXT NOT NULL CHECK(mime_type IN ('application/pdf','image/png','image/jpeg','image/webp')),
+  file_size INTEGER NOT NULL CHECK(file_size BETWEEN 1 AND 5242880),
+  file_data BYTEA NOT NULL,
+  sha256 TEXT NOT NULL CHECK(length(sha256)=64),
+  created_by TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(order_id,sha256),
+  CHECK(octet_length(file_data)=file_size)
+);
+CREATE INDEX IF NOT EXISTS hm_order_proofs_order_idx ON hm_order_proofs(order_id,created_at DESC);

@@ -1,6 +1,6 @@
 {
   "name": "hefestus-financeiro",
-  "version": "1.4.0",
+  "version": "1.5.1",
   "private": true,
   "type": "module",
   "description": "Controle de entradas e saídas da Hefestus Maker — Neon + Render",

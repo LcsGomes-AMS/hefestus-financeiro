@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { HttpError, entry, filters, uuid, version, category } from './validation.js';
 import { registerFeatures } from './features.js';
+import {registerPaymentProofs} from './payment-proofs.js';
 import {registerPublicTracking,registerAdminTracking} from './tracking.js';
 const scrypt = promisify(scryptCallback);
 const hash = text => createHash('sha256').update(text).digest('hex');
@@ -117,6 +118,7 @@ export async function createApp({ pool, user, password, origin, production = fal
   app.put('/api/entries/:id', (req,res) => mutate(req,res,'update'));
   app.delete('/api/entries/:id', (req,res) => mutate(req,res,'delete'));
   registerFeatures(app,pool,user);
+  registerPaymentProofs(app,pool,user);
   registerAdminTracking(app,pool,allowedOrigin);
   app.use('/api', (req,res) => res.status(404).json({error:'Recurso não encontrado.'}));
   app.use(express.static(fileURLToPath(new URL('../public',import.meta.url)),{etag:true,maxAge:0}));
